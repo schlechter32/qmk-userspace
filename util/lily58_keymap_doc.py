@@ -37,6 +37,23 @@ LAYER_INFO = {
     '_SPARE': 'Empty, free for Vial.',
 }
 
+# Pointer settings guide for keymap.html, by printed legend. All steps are on ADJUST, so the ↓ and ↑
+# thumbs are held throughout.
+GUIDE = [
+    {'what': 'Trackpoint speed', 'hold': ['A'], 'tap': ['J', 'K'], 'note': 'J slower, K faster'},
+    {'what': 'Trackpoint sniping speed', 'hold': ['S'], 'tap': ['J', 'K'], 'note': 'speed while sniping'},
+    {'what': 'Trackpoint scroll speed', 'hold': ['D'], 'tap': ['J', 'K'], 'note': 'K = more throttle = slower scrolling'},
+    {'what': 'Touchpad speed', 'hold': ['⌦', 'A'], 'tap': ['J', 'K'], 'note': '⌦ is Shift: targets the right half'},
+    {'what': 'Touchpad sniping speed', 'hold': ['⌦', 'S'], 'tap': ['J', 'K'], 'note': ''},
+    {'what': 'Touchpad scroll speed', 'hold': ['⌦', 'D'], 'tap': ['J', 'K'], 'note': ''},
+    {'what': 'Save all pointer settings', 'hold': [], 'tap': ['F'], 'note': 'otherwise lost on reboot; both halves flash cyan'},
+    {'what': 'Toggle drag-scroll', 'hold': [], 'tap': ['B'], 'note': 'add ⌦ for the touchpad'},
+    {'what': 'Toggle sniping', 'hold': [], 'tap': ['G'], 'note': 'add ⌦ for the touchpad'},
+    {'what': 'Cycle scroll lock', 'hold': [], 'tap': ['T'], 'note': 'off → horizontal → vertical'},
+]
+GUIDE_LAYER = '_ADJUST'
+GUIDE_ALWAYS_HELD = ['↓', '↑']
+
 BASIC = {
     'GRV': '`', 'MINS': '-', 'EQL': '=', 'LBRC': '[', 'RBRC': ']', 'BSLS': '\\', 'SCLN': ';', 'QUOT': "'",
     'COMM': ',', 'DOT': '.', 'SLSH': '/', 'SLASH': '/', 'GRAVE': '`', 'ESC': 'Esc', 'TAB': 'Tab',
@@ -266,6 +283,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   #tip { position: fixed; pointer-events: none; background: #2a201a; border: 1px solid var(--legend); border-radius: 6px;
          padding: 8px 10px; max-width: 320px; font-size: 13px; display: none; z-index: 10; }
   #tip code { color: var(--legend); font-size: 12px; }
+  .key.hl-hold { outline: 3px solid #4fc3f7; opacity: 1; }
+  .key.hl-tap { outline: 3px solid var(--legend); opacity: 1; }
+  .key.dim { opacity: .2; }
+  h2 { font-size: 17px; margin: 28px 0 6px; }
+  .guide { border-collapse: collapse; margin-top: 6px; }
+  .guide td, .guide th { padding: 6px 12px; border-bottom: 1px solid #3a2c24; text-align: left; }
+  .guide tr.row:hover { background: #2a201a; cursor: pointer; }
+  .guide kbd { background: var(--cap); border-radius: 4px; padding: 1px 6px; color: var(--text); font-family: inherit; }
+  .guide kbd.hold { box-shadow: 0 0 0 2px #4fc3f7; }
+  .guide kbd.tap { box-shadow: 0 0 0 2px var(--legend); }
+  .feedback { opacity: .85; max-width: 900px; }
   .hint { margin-top: 16px; opacity: .7; font-size: 13px; }
 </style>
 </head>
@@ -275,11 +303,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <div id="info"></div>
 <div id="board"></div>
 <div id="tip"></div>
+<h2>Pointer settings, step by step</h2>
+<p class="feedback">Hold the <kbd>↓</kbd> and <kbd>↑</kbd> thumbs the whole time (ADJUST). Hover a row to see the keys:
+<b style="color:#4fc3f7">blue = hold</b>, <b style="color:var(--legend)">orange = tap</b>.
+Each tap changes the value by a small step, so tap 5–10 times to feel it.
+The LEDs confirm every step on the half whose device changed: <b>white = up, red = down</b>
+(left = trackpoint, right = touchpad). No flash means the keys didn't register as an adjustment.</p>
+<table class="guide" id="guide"><tr><th>To change</th><th>Hold</th><th>Then tap</th><th></th></tr></table>
 <p class="hint">Orange corner text is the printed keycap legend. Hover a key for details; press 1–9 to switch layers.
 Faded keys are transparent and show what they inherit from the layer below.
 Generated from keymap.c by util/lily58_keymap_doc.py.</p>
 <script>
 const LAYERS = __LAYERS__;
+const GUIDE = __GUIDE__;
+const GUIDE_LAYER = __GUIDE_LAYER__;
+const GUIDE_ALWAYS_HELD = __GUIDE_HELD__;
+let highlight = null;
 const GEOMETRY = __GEOMETRY__;
 const LEGEND = __LEGEND__;
 const MODS = new Set(['∞','◇','⇥','⌦','♡','⌫','⏎','⌃','⌥','↓','↑','‡','▲','▭']);
@@ -296,6 +335,7 @@ function effective(layerIdx, i) {
 }
 
 function render(idx) {
+  if (!highlight) current = idx;
   const layer = LAYERS[idx];
   document.querySelectorAll('.tabs button').forEach((b, j) => b.classList.toggle('active', j === idx));
   document.getElementById('info').textContent = layer.info;
@@ -307,6 +347,11 @@ function render(idx) {
     if (key.tap === null) { shown = effective(idx, i) || key; cls = 'trans'; }
     else if (key.tap === '') { cls = 'none'; }
     el.className = 'key ' + cls + (MODS.has(LEGEND[i]) ? ' mod' : '');
+    if (highlight) {
+      if (highlight.hold.includes(LEGEND[i])) el.classList.add('hl-hold');
+      else if (highlight.tap.includes(LEGEND[i])) el.classList.add('hl-tap');
+      else el.classList.add('dim');
+    }
     Object.assign(el.style, { left: `calc(var(--u) * ${g.x})`, top: `calc(var(--u) * ${g.y})`,
       width: `calc(var(--u) * ${g.w} - 4px)`, height: `calc(var(--u) * ${g.h} - 4px)` });
     el.innerHTML = `<span class="legend">${esc(LEGEND[i])}</span>` +
@@ -348,6 +393,21 @@ document.addEventListener('keydown', e => {
   const n = parseInt(e.key, 10);
   if (n >= 1 && n <= LAYERS.length) render(n - 1);
 });
+const guideTable = document.getElementById('guide');
+const kbds = (keys, cls) => keys.map(k => `<kbd class="${cls}">${esc(k)}</kbd>`).join(' ');
+GUIDE.forEach(g => {
+  const tr = document.createElement('tr');
+  tr.className = 'row';
+  const hold = GUIDE_ALWAYS_HELD.concat(g.hold);
+  tr.innerHTML = `<td>${esc(g.what)}</td><td>${kbds(hold, 'hold')}</td><td>${kbds(g.tap, 'tap')}</td><td>${esc(g.note)}</td>`;
+  tr.addEventListener('mouseenter', () => {
+    highlight = { hold: hold, tap: g.tap };
+    render(LAYERS.findIndex(l => l.id === GUIDE_LAYER));
+  });
+  tr.addEventListener('mouseleave', () => { highlight = null; render(current); });
+  guideTable.appendChild(tr);
+});
+let current = 0;
 const start = LAYERS.findIndex(l => '#' + l.name.toLowerCase() === location.hash);
 render(start < 0 ? 0 : start);
 </script>
@@ -361,7 +421,10 @@ def write_html(layers):
     geometry = [{'x': k['x'], 'y': k['y'], 'w': k.get('w', 1), 'h': k.get('h', 1)} for k in layout]
     page = (HTML_TEMPLATE.replace('__LAYERS__', json.dumps(layers, ensure_ascii=False))
             .replace('__GEOMETRY__', json.dumps(geometry))
-            .replace('__LEGEND__', json.dumps(LEGEND, ensure_ascii=False)))
+            .replace('__LEGEND__', json.dumps(LEGEND, ensure_ascii=False))
+            .replace('__GUIDE__', json.dumps(GUIDE, ensure_ascii=False))
+            .replace('__GUIDE_LAYER__', json.dumps(GUIDE_LAYER))
+            .replace('__GUIDE_HELD__', json.dumps(GUIDE_ALWAYS_HELD, ensure_ascii=False)))
     (KEYMAP_DIR / 'keymap.html').write_text(page)
 
 
