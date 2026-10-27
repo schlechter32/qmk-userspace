@@ -54,6 +54,11 @@ GUIDE = [
 GUIDE_LAYER = '_ADJUST'
 GUIDE_ALWAYS_HELD = ['↓', '↑']
 
+# Keymap macros whose hold is handled in keymap.c rather than by the keycode itself.
+HOLD_OVERRIDES = {
+    'DS_O': ('Drag scroll', 'Hold: the trackpoint scrolls instead of moving the pointer until you let go.'),
+}
+
 BASIC = {
     'GRV': '`', 'MINS': '-', 'EQL': '=', 'LBRC': '[', 'RBRC': ']', 'BSLS': '\\', 'SCLN': ';', 'QUOT': "'",
     'COMM': ',', 'DOT': '.', 'SLSH': '/', 'SLASH': '/', 'GRAVE': '`', 'ESC': 'Esc', 'TAB': 'Tab',
@@ -147,6 +152,10 @@ def resolve(kc, defines):
 def describe(kc, defines, shifted):
     """Return a dict with tap, hold, description and the expanded keycode. tap is None for transparent."""
     name = kc
+    if kc in HOLD_OVERRIDES:
+        hold, desc = HOLD_OVERRIDES[kc]
+        return {**describe(resolve(kc, defines), defines, shifted), 'hold': hold, 'desc': desc,
+                'code': f'{kc} = {resolve(kc, defines)}, hold handled in keymap.c'}
     if kc in shifted:
         inner = describe(resolve(kc, defines), defines, {})
         tap = describe(shifted[kc], defines, {})['tap']

@@ -44,6 +44,9 @@ enum layer_number {
 #define HM_L    RGUI_T(KC_L)
 #define HM_SCLN RCTL_T(KC_SCLN)
 
+// Tap O, hold for trackpoint drag-scroll (handled in process_record_keymap)
+#define DS_O    LT(0, KC_O)
+
 // Pinky shifts (ZMK pinkyshiftL / pinkyshiftR)
 #define PS_TAB  LSFT_T(KC_TAB)
 #define PS_ENT  RSFT_T(KC_ENT)
@@ -65,7 +68,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
  [_BASE] = LAYOUT(
   KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                       KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_MINS,
-  KC_ESC,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,                       KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSPC,
+  KC_ESC,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,                       KC_Y,    KC_U,    KC_I,    DS_O,    KC_P,    KC_BSPC,
   PS_TAB,  HM_A,    HM_S,    HM_D,    HM_F,    HM_G,                       HM_H,    HM_J,    HM_K,    HM_L,    HM_SCLN, PS_ENT,
   KC_DEL,  KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    CS_LBRC, CS_RBRC,  KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_QUOT, MEH_SLS,
                     MS_BTN1, KC_RALT, MO(_LOWER), MEH_SPC,      C(KC_BSPC), MO(_RAISE), KC_RALT, MS_BTN2
@@ -244,6 +247,14 @@ bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
   }
 
   switch (keycode) {
+    case DS_O:
+      if (!record->tap.count) {
+        // Held: the trackpoint (main side) scrolls until O is released, like HK_D_MODE.
+        g_hk_state.main.drag_scroll = record->event.pressed;
+        g_hk_state.dirty            = true;
+        return false;
+      }
+      return true;
     case LM_PLUS: return tap_shifted(KC_PLUS, record);
     case LM_CIRC: return tap_shifted(KC_CIRC, record);
     case LM_DLR:  return tap_shifted(KC_DLR, record);
