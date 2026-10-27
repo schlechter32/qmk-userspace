@@ -34,3 +34,8 @@ The build system prefers `<overlay>/users/holykeebs` over any in-tree copy, so
 this overlay wins even if a stale `users/holykeebs` is still present in a fork.
 
 See each fork's `CLAUDE.md` for the full holykeebs build-variable reference.
+
+## schlechter32's Lily58 keymap
+
+Trackpoint (left) + TPS43 touchpad (right), ported from a ZMK Corne layout: see the
+[keymap and flashing guide](keyboards/holykeebs/lily58/keymaps/schlechter32/readme.md).
