@@ -80,7 +80,7 @@ LEDs gold. Typing layer without home-row mods. Turn on with RAISE + ⌥ (left), 
 - **Inner keys** <kbd>[</kbd> <kbd>]</kbd>: tap for `[` / `]`, hold for Ctrl+Shift, so the left pinky doesn't have to hold both Ctrl (A) and Shift (⇥).
   They work with keys on either hand. Holding one alone, e.g. for Ctrl+Shift+click, takes the 280 ms tapping term.
 - **Meh** is Ctrl+Shift+Alt.
-- **Hold <kbd>O</kbd>** to scroll with the trackpoint (drag-scroll) until you let go. It kicks in after the 280 ms tapping term, or as soon as you press another key; while typing, Flow Tap keeps it a plain `o`.
+- **Hold <kbd>O</kbd>** to scroll with the trackpoint (drag-scroll) until you let go. Scrolling starts once O has been held for the 280 ms tapping term; while typing, Flow Tap keeps it a plain `o`.
 - **LED colours:** all 35 LEDs per half (per-key + underglow) take the layer colour: LOWER blue, RAISE green, ADJUST purple, PLAIN gold. BASE shows your normal animation (change it in Vial → Lighting or with *RGB mode* on ADJUST). With RGB switched off, the layer colours are off too.
 
 ## Pointer settings, step by step
